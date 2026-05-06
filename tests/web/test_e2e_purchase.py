@@ -1,8 +1,10 @@
+import time
 import pytest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from .pages.login_page import LoginPage
 from .pages.inventory_page import InventoryPage
-from .pages.cart_page import CartPage
-from .pages.checkout_page import CheckoutPage
 
 pytestmark = pytest.mark.web
 
@@ -10,27 +12,42 @@ pytestmark = pytest.mark.web
 class TestCompletePurchase:
 
     def test_full_purchase_flow(self, driver):
-        LoginPage(driver).open().login("standard_user", "secret_sauce")
+        driver.get("https://www.saucedemo.com/")
+        driver.find_element(By.ID, "user-name").send_keys("standard_user")
+        driver.find_element(By.ID, "password").send_keys("secret_sauce")
+        driver.find_element(By.ID, "login-button").click()
 
-        inventory = InventoryPage(driver)
-        assert inventory.get_title() == "Products"
+        wait = WebDriverWait(driver, 20)
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "title")))
+        assert driver.find_element(By.CLASS_NAME, "title").text == "Products"
 
-        inventory.add_backpack_to_cart()
-        assert inventory.get_cart_count() == "1"
+        driver.find_element(By.ID, "add-to-cart-sauce-labs-backpack").click()
+        time.sleep(0.5)
+        assert driver.find_element(By.CLASS_NAME, "shopping_cart_badge").text == "1"
 
-        inventory.go_to_cart()
+        driver.find_element(By.CLASS_NAME, "shopping_cart_link").click()
+        wait.until(EC.url_contains("cart"))
 
-        cart = CartPage(driver)
-        assert "Sauce Labs Backpack" in cart.get_item_names()
+        item = driver.find_element(By.CLASS_NAME, "inventory_item_name")
+        assert item.text == "Sauce Labs Backpack"
 
-        cart.checkout()
+        driver.find_element(By.ID, "checkout").click()
+        wait.until(EC.url_contains("checkout-step-one"))
 
-        checkout = CheckoutPage(driver)
-        checkout.fill_info("Arthur", "Godinho", "64000")
-        assert "Total:" in checkout.get_total()
+        driver.find_element(By.ID, "first-name").send_keys("Arthur")
+        driver.find_element(By.ID, "last-name").send_keys("Godinho")
+        driver.find_element(By.ID, "postal-code").send_keys("64000")
+        driver.find_element(By.ID, "continue").click()
+        wait.until(EC.url_contains("checkout-step-two"))
 
-        checkout.finish()
-        assert checkout.get_complete_header() == "Thank you for your order!"
+        total = driver.find_element(By.CLASS_NAME, "summary_total_label").text
+        assert "Total:" in total
+
+        driver.find_element(By.ID, "finish").click()
+        wait.until(EC.url_contains("checkout-complete"))
+
+        header = driver.find_element(By.CLASS_NAME, "complete-header").text
+        assert header == "Thank you for your order!"
 
 
 class TestLogin:
