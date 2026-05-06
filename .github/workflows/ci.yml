@@ -37,9 +37,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Configurar Chrome e ChromeDriver
-        uses: nanasess/setup-chromedriver@v2
-
       - name: Instalar dependências
         run: pip install -r requirements.txt
 

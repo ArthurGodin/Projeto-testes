@@ -15,16 +15,14 @@ class CheckoutPage(BasePage):
         self.type_text(self.FIRST_NAME, first_name)
         self.type_text(self.LAST_NAME, last_name)
         self.type_text(self.POSTAL_CODE, postal_code)
-        self.find(self.CONTINUE_BTN)
-        self.driver.find_element(*self.CONTINUE_BTN).click()
+        self.click(self.CONTINUE_BTN)
         return self
 
     def get_total(self):
         return self.get_text(self.SUMMARY_TOTAL)
 
     def finish(self):
-        self.find(self.FINISH_BTN)
-        self.driver.find_element(*self.FINISH_BTN).click()
+        self.click(self.FINISH_BTN)
         return self
 
     def get_complete_header(self):

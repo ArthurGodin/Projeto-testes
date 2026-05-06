@@ -1,6 +1,5 @@
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import ElementClickInterceptedException
 
 
 class BasePage:
@@ -12,11 +11,8 @@ class BasePage:
         return self.wait.until(EC.presence_of_element_located(locator))
 
     def click(self, locator):
-        element = self.wait.until(EC.element_to_be_clickable(locator))
-        try:
-            element.click()
-        except ElementClickInterceptedException:
-            self.driver.execute_script("arguments[0].click();", element)
+        self.find(locator)
+        self.driver.find_element(*locator).click()
 
     def type_text(self, locator, text):
         element = self.find(locator)
@@ -25,6 +21,3 @@ class BasePage:
 
     def get_text(self, locator):
         return self.find(locator).text
-
-    def wait_for_url(self, url_part):
-        self.wait.until(EC.url_contains(url_part))
