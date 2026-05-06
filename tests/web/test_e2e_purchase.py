@@ -1,3 +1,4 @@
+import time
 import pytest
 from .pages.login_page import LoginPage
 from .pages.inventory_page import InventoryPage
@@ -20,6 +21,7 @@ class TestCompletePurchase:
         assert inventory.get_cart_count() == "2"
 
         inventory.go_to_cart()
+        time.sleep(1)
 
         cart = CartPage(driver)
         items = cart.get_item_names()
@@ -27,6 +29,7 @@ class TestCompletePurchase:
         assert "Sauce Labs Bike Light" in items
 
         cart.checkout()
+        time.sleep(1)
 
         checkout = CheckoutPage(driver)
         checkout.fill_info("Arthur", "Godinho", "64000")
