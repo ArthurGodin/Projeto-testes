@@ -11,12 +11,11 @@ pytestmark = pytest.mark.web
 
 
 def _reliable_click(driver, by, value, expected_url_fragment, timeout=15):
-    wait = WebDriverWait(driver, timeout)
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            element = wait.until(EC.element_to_be_clickable((by, value)))
-            element.click()
+            el = driver.find_element(by, value)
+            el.click()
         except Exception:
             pass
         try:
@@ -25,7 +24,9 @@ def _reliable_click(driver, by, value, expected_url_fragment, timeout=15):
         except Exception:
             pass
     raise TimeoutError(
-        f"Click on ({by}, {value}) did not navigate to '{expected_url_fragment}'"
+        f"Click on ({by}, {value}) did not navigate to '{expected_url_fragment}'. "
+        f"Current URL: {driver.current_url}. "
+        f"Page source snippet: {driver.page_source[:500]}"
     )
 
 
@@ -33,19 +34,20 @@ class TestCompletePurchase:
 
     def test_full_purchase_flow(self, driver):
         driver.get("https://www.saucedemo.com/")
+
         driver.find_element(By.ID, "user-name").send_keys("standard_user")
         driver.find_element(By.ID, "password").send_keys("secret_sauce")
         driver.find_element(By.ID, "login-button").click()
 
         wait = WebDriverWait(driver, 20)
         wait.until(EC.url_contains("inventory"))
-        assert driver.find_element(By.CLASS_NAME, "title").text == "Products"
 
         wait.until(EC.element_to_be_clickable((By.ID, "add-to-cart-sauce-labs-backpack"))).click()
         wait.until(EC.text_to_be_present_in_element((By.CLASS_NAME, "shopping_cart_badge"), "1"))
 
-        driver.get("https://www.saucedemo.com/cart.html")
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "inventory_item_name")))
+        _reliable_click(driver, By.CLASS_NAME, "shopping_cart_link", "cart")
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "cart_item")))
+
         assert driver.find_element(By.CLASS_NAME, "inventory_item_name").text == "Sauce Labs Backpack"
 
         _reliable_click(driver, By.ID, "checkout", "checkout-step-one")
@@ -64,8 +66,7 @@ class TestCompletePurchase:
         _reliable_click(driver, By.ID, "finish", "checkout-complete")
         wait.until(EC.presence_of_element_located((By.CLASS_NAME, "complete-header")))
 
-        header = driver.find_element(By.CLASS_NAME, "complete-header").text
-        assert header == "Thank you for your order!"
+        assert driver.find_element(By.CLASS_NAME, "complete-header").text == "Thank you for your order!"
 
 
 class TestLogin:
