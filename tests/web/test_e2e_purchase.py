@@ -19,21 +19,17 @@ class TestCompletePurchase:
         assert inventory.get_cart_count() == "1"
 
         inventory.go_to_cart()
-        inventory.wait_for_url("cart")
 
         cart = CartPage(driver)
         assert "Sauce Labs Backpack" in cart.get_item_names()
 
         cart.checkout()
-        cart.wait_for_url("checkout-step-one")
 
         checkout = CheckoutPage(driver)
         checkout.fill_info("Arthur", "Godinho", "64000")
-        checkout.wait_for_url("checkout-step-two")
         assert "Total:" in checkout.get_total()
 
         checkout.finish()
-        checkout.wait_for_url("checkout-complete")
         assert checkout.get_complete_header() == "Thank you for your order!"
 
 

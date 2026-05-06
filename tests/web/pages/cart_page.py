@@ -15,5 +15,6 @@ class CartPage(BasePage):
         return [el.text for el in elements]
 
     def checkout(self):
-        self.click(self.CHECKOUT_BTN)
+        self.find(self.CHECKOUT_BTN)
+        self.driver.find_element(*self.CHECKOUT_BTN).click()
         return self
