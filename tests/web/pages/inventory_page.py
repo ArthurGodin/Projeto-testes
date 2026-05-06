@@ -17,7 +17,9 @@ class InventoryPage(BasePage):
         return self
 
     def add_bike_light_to_cart(self):
-        self.click(self.ADD_BIKE_LIGHT)
+        element = self.find(self.ADD_BIKE_LIGHT)
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+        element.click()
         return self
 
     def get_cart_count(self):
