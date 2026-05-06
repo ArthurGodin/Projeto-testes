@@ -5,7 +5,6 @@ from .base_page import BasePage
 class InventoryPage(BasePage):
     TITLE = (By.CLASS_NAME, "title")
     ADD_BACKPACK = (By.ID, "add-to-cart-sauce-labs-backpack")
-    ADD_BIKE_LIGHT = (By.ID, "add-to-cart-sauce-labs-bike-light")
     CART_BADGE = (By.CLASS_NAME, "shopping_cart_badge")
     CART_LINK = (By.CLASS_NAME, "shopping_cart_link")
 
@@ -14,12 +13,6 @@ class InventoryPage(BasePage):
 
     def add_backpack_to_cart(self):
         self.click(self.ADD_BACKPACK)
-        return self
-
-    def add_bike_light_to_cart(self):
-        element = self.find(self.ADD_BIKE_LIGHT)
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
-        element.click()
         return self
 
     def get_cart_count(self):

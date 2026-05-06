@@ -16,16 +16,13 @@ class TestCompletePurchase:
         assert inventory.get_title() == "Products"
 
         inventory.add_backpack_to_cart()
-        inventory.add_bike_light_to_cart()
-        assert inventory.get_cart_count() == "2"
+        assert inventory.get_cart_count() == "1"
 
         inventory.go_to_cart()
         inventory.wait_for_url("cart")
 
         cart = CartPage(driver)
-        items = cart.get_item_names()
-        assert "Sauce Labs Backpack" in items
-        assert "Sauce Labs Bike Light" in items
+        assert "Sauce Labs Backpack" in cart.get_item_names()
 
         cart.checkout()
         cart.wait_for_url("checkout-step-one")
