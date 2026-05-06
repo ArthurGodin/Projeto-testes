@@ -8,7 +8,6 @@ pytestmark = pytest.mark.web
 
 
 class TestCompletePurchase:
-    """Fluxo E2E: login -> adicionar produtos -> carrinho -> checkout -> finalizar compra"""
 
     def test_full_purchase_flow(self, driver):
         LoginPage(driver).open().login("standard_user", "secret_sauce")
