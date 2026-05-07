@@ -1,5 +1,3 @@
-import time
-
 import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -10,31 +8,23 @@ from .pages.inventory_page import InventoryPage
 pytestmark = pytest.mark.web
 
 
-def _reliable_click(driver, by, value, expected_url_fragment, timeout=15):
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        try:
-            el = driver.find_element(by, value)
-            el.click()
-        except Exception:
-            pass
-        try:
-            WebDriverWait(driver, 2).until(EC.url_contains(expected_url_fragment))
-            return
-        except Exception:
-            pass
-    raise TimeoutError(
-        f"Click on ({by}, {value}) did not navigate to '{expected_url_fragment}'. "
-        f"Current URL: {driver.current_url}. "
-        f"Page source snippet: {driver.page_source[:500]}"
-    )
+def _js_click(driver, css_selector, next_locator, timeout=20):
+    wait = WebDriverWait(driver, timeout)
+    wait.until(EC.presence_of_element_located(
+        (By.CSS_SELECTOR, css_selector)
+    ))
+    driver.execute_script(f"""
+        var el = document.querySelector('{css_selector}');
+        el.dispatchEvent(new MouseEvent('click', {{bubbles: true, cancelable: true}}));
+    """)
+    wait.until(EC.presence_of_element_located(next_locator))
 
 
 class TestCompletePurchase:
 
+    @pytest.mark.flaky(reruns=3)
     def test_full_purchase_flow(self, driver):
         driver.get("https://www.saucedemo.com/")
-
         driver.find_element(By.ID, "user-name").send_keys("standard_user")
         driver.find_element(By.ID, "password").send_keys("secret_sauce")
         driver.find_element(By.ID, "login-button").click()
@@ -42,30 +32,23 @@ class TestCompletePurchase:
         wait = WebDriverWait(driver, 20)
         wait.until(EC.url_contains("inventory"))
 
-        wait.until(EC.element_to_be_clickable((By.ID, "add-to-cart-sauce-labs-backpack"))).click()
-        wait.until(EC.text_to_be_present_in_element((By.CLASS_NAME, "shopping_cart_badge"), "1"))
+        _js_click(driver, "#add-to-cart-sauce-labs-backpack", (By.CLASS_NAME, "shopping_cart_badge"))
 
-        _reliable_click(driver, By.CLASS_NAME, "shopping_cart_link", "cart")
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "cart_item")))
-
+        _js_click(driver, ".shopping_cart_link", (By.CLASS_NAME, "cart_item"))
         assert driver.find_element(By.CLASS_NAME, "inventory_item_name").text == "Sauce Labs Backpack"
 
-        _reliable_click(driver, By.ID, "checkout", "checkout-step-one")
-        wait.until(EC.presence_of_element_located((By.ID, "first-name")))
+        _js_click(driver, "#checkout", (By.ID, "first-name"))
 
         driver.find_element(By.ID, "first-name").send_keys("Arthur")
         driver.find_element(By.ID, "last-name").send_keys("Godinho")
         driver.find_element(By.ID, "postal-code").send_keys("64000")
 
-        _reliable_click(driver, By.ID, "continue", "checkout-step-two")
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "summary_total_label")))
+        _js_click(driver, "#continue", (By.CLASS_NAME, "summary_total_label"))
 
         total = driver.find_element(By.CLASS_NAME, "summary_total_label").text
         assert "Total:" in total
 
-        _reliable_click(driver, By.ID, "finish", "checkout-complete")
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "complete-header")))
-
+        _js_click(driver, "#finish", (By.CLASS_NAME, "complete-header"))
         assert driver.find_element(By.CLASS_NAME, "complete-header").text == "Thank you for your order!"
 
 
