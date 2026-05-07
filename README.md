@@ -62,9 +62,6 @@ pytest tests/api/ -v
 
 # Apenas testes Web
 pytest tests/web/ -v
-
-# Com relatório HTML
-pytest --html=reports/report.html --self-contained-html
 ```
 
 ## Cenários de Teste
@@ -81,7 +78,7 @@ pytest --html=reports/report.html --self-contained-html
 
 | Cenário | Descrição |
 |---------|-----------|
-| **Compra completa (E2E)** | Login → adicionar 2 produtos → carrinho → checkout → finalizar compra |
+| **Compra completa (E2E)** | Login → adicionar produto → carrinho → checkout → finalizar compra |
 | **Login válido** | Autenticação com credenciais corretas |
 | **Usuário bloqueado** | Tentativa de login com usuário locked_out |
 | **Credenciais inválidas** | Tentativa de login com dados incorretos |
@@ -89,6 +86,17 @@ pytest --html=reports/report.html --self-contained-html
 ## Design Patterns
 
 - **Page Object Model (POM)**: Cada página do SauceDemo possui sua própria classe, encapsulando localizadores e ações. Isso facilita a manutenção e reutilização.
+
+## Prints do Funcionamento
+
+### Testes de API (18 passed)
+![Testes de API](prints/api_tests.png)
+
+### Testes Web (5 passed)
+![Testes Web](prints/web_tests.png)
+
+### Pipeline CI — GitHub Actions
+![Pipeline CI](prints/pipeline_ci.png)
 
 ## CI/CD — GitHub Actions
 
