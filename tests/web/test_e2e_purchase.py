@@ -12,7 +12,7 @@ from .pages.inventory_page import PaginaInventario
 pytestmark = pytest.mark.web
 
 LENTO = not os.environ.get("CI")
-ATRASO = 1.5 if LENTO else 0
+ATRASO = 0.5 if LENTO else 0
 
 
 def _destacar(driver, seletor_css):
@@ -106,7 +106,7 @@ class TestCompraCompleta:
         _clique_js(driver, "#finish", (By.CLASS_NAME, "complete-header"))
         assert driver.find_element(By.CLASS_NAME, "complete-header").text == "Thank you for your order!"
         if LENTO:
-            time.sleep(2)
+            time.sleep(1)
 
 
 class TestLogin:
