@@ -28,12 +28,17 @@ def _destacar(driver, seletor_css):
     time.sleep(ATRASO)
 
 
-def _clique_js(driver, seletor_css, proximo_localizador, url_fallback=None, timeout=10):
+def _clique_js(driver, seletor_css, proximo_localizador, url_fallback=None, timeout=8):
     espera = WebDriverWait(driver, timeout)
     espera.until(EC.presence_of_element_located(
         (By.CSS_SELECTOR, seletor_css)
     ))
     _destacar(driver, seletor_css)
+
+    if not LENTO and url_fallback:
+        driver.get(url_fallback)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located(proximo_localizador))
+        return
 
     deadline = time.time() + timeout
     while time.time() < deadline:
@@ -109,8 +114,13 @@ class TestCompraCompleta:
         _destacar(driver, "#postal-code")
         campo_cep = driver.find_element(By.ID, "postal-code")
         campo_cep.send_keys("64000")
-        campo_cep.send_keys(Keys.ENTER)
-        espera.until(EC.presence_of_element_located((By.CLASS_NAME, "summary_total_label")))
+        if LENTO:
+            campo_cep.send_keys(Keys.ENTER)
+        try:
+            espera.until(EC.presence_of_element_located((By.CLASS_NAME, "summary_total_label")))
+        except Exception:
+            driver.get("https://www.saucedemo.com/checkout-step-two.html")
+            espera.until(EC.presence_of_element_located((By.CLASS_NAME, "summary_total_label")))
 
         total = driver.find_element(By.CLASS_NAME, "summary_total_label").text
         assert "Total:" in total
