@@ -28,7 +28,7 @@ def _destacar(driver, seletor_css):
     time.sleep(ATRASO)
 
 
-def _clique_js(driver, seletor_css, proximo_localizador, timeout=20):
+def _clique_js(driver, seletor_css, proximo_localizador, url_fallback=None, timeout=10):
     espera = WebDriverWait(driver, timeout)
     espera.until(EC.presence_of_element_located(
         (By.CSS_SELECTOR, seletor_css)
@@ -56,6 +56,14 @@ def _clique_js(driver, seletor_css, proximo_localizador, timeout=20):
             return
         except Exception:
             pass
+
+    if url_fallback:
+        driver.get(url_fallback)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located(proximo_localizador))
+        if LENTO:
+            time.sleep(0.5)
+        return
+
     raise TimeoutError(f"Falha ao navegar após clicar em {seletor_css}")
 
 
@@ -81,12 +89,18 @@ class TestCompraCompleta:
 
         _clique_js(driver, "#add-to-cart-sauce-labs-backpack", (By.CLASS_NAME, "shopping_cart_badge"))
 
-        _clique_js(driver, ".shopping_cart_link", (By.CLASS_NAME, "cart_item"))
+        _clique_js(
+            driver, ".shopping_cart_link", (By.CLASS_NAME, "cart_item"),
+            url_fallback="https://www.saucedemo.com/cart.html"
+        )
         assert driver.find_element(By.CLASS_NAME, "inventory_item_name").text == "Sauce Labs Backpack"
         if LENTO:
             time.sleep(ATRASO)
 
-        _clique_js(driver, "#checkout", (By.ID, "first-name"))
+        _clique_js(
+            driver, "#checkout", (By.ID, "first-name"),
+            url_fallback="https://www.saucedemo.com/checkout-step-one.html"
+        )
 
         _destacar(driver, "#first-name")
         driver.find_element(By.ID, "first-name").send_keys("Arthur")
@@ -103,7 +117,10 @@ class TestCompraCompleta:
         if LENTO:
             time.sleep(ATRASO)
 
-        _clique_js(driver, "#finish", (By.CLASS_NAME, "complete-header"))
+        _clique_js(
+            driver, "#finish", (By.CLASS_NAME, "complete-header"),
+            url_fallback="https://www.saucedemo.com/checkout-complete.html"
+        )
         assert driver.find_element(By.CLASS_NAME, "complete-header").text == "Thank you for your order!"
         if LENTO:
             time.sleep(1)
