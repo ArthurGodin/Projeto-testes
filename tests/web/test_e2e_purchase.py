@@ -3,6 +3,7 @@ import time
 
 import pytest
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from .pages.login_page import PaginaLogin
@@ -92,9 +93,10 @@ class TestCompraCompleta:
         _destacar(driver, "#last-name")
         driver.find_element(By.ID, "last-name").send_keys("Godinho")
         _destacar(driver, "#postal-code")
-        driver.find_element(By.ID, "postal-code").send_keys("64000")
-
-        _clique_js(driver, "#continue", (By.CLASS_NAME, "summary_total_label"))
+        campo_cep = driver.find_element(By.ID, "postal-code")
+        campo_cep.send_keys("64000")
+        campo_cep.send_keys(Keys.ENTER)
+        espera.until(EC.presence_of_element_located((By.CLASS_NAME, "summary_total_label")))
 
         total = driver.find_element(By.CLASS_NAME, "summary_total_label").text
         assert "Total:" in total
