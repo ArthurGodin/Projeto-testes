@@ -33,13 +33,29 @@ def _clique_js(driver, seletor_css, proximo_localizador, timeout=20):
         (By.CSS_SELECTOR, seletor_css)
     ))
     _destacar(driver, seletor_css)
-    driver.execute_script(f"""
-        var el = document.querySelector('{seletor_css}');
-        el.dispatchEvent(new MouseEvent('click', {{bubbles: true, cancelable: true}}));
-    """)
-    espera.until(EC.presence_of_element_located(proximo_localizador))
-    if LENTO:
-        time.sleep(0.5)
+
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            elemento = driver.find_element(By.CSS_SELECTOR, seletor_css)
+            elemento.click()
+        except Exception:
+            pass
+        try:
+            driver.execute_script(f"""
+                var el = document.querySelector('{seletor_css}');
+                if (el) el.dispatchEvent(new MouseEvent('click', {{bubbles: true, cancelable: true}}));
+            """)
+        except Exception:
+            pass
+        try:
+            WebDriverWait(driver, 2).until(EC.presence_of_element_located(proximo_localizador))
+            if LENTO:
+                time.sleep(0.5)
+            return
+        except Exception:
+            pass
+    raise TimeoutError(f"Falha ao navegar após clicar em {seletor_css}")
 
 
 class TestCompraCompleta:
