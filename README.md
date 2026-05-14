@@ -58,10 +58,10 @@ pip install -r requirements.txt
 pytest
 
 # Apenas testes de API
-pytest tests/api/ -v
+py -3.13 -m pytest tests/api/ -v
 
 # Apenas testes Web
-pytest tests/web/ -v
+py -3.13 -m pytest tests/web/ -v
 ```
 
 ## Cenários de Teste

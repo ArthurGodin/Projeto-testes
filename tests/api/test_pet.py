@@ -6,7 +6,7 @@ pytestmark = pytest.mark.api
 
 class TestPet:
 
-    def test_add_pet(self, base_url):
+    def test_adicionar_pet(self, base_url):
         payload = {
             "id": 99901,
             "name": "Rex",
@@ -15,22 +15,22 @@ class TestPet:
             "tags": [{"id": 1, "name": "trained"}],
             "status": "available"
         }
-        response = requests.post(f"{base_url}/pet", json=payload)
-        assert response.status_code == 200
-        data = response.json()
-        assert data["name"] == "Rex"
-        assert data["status"] == "available"
+        resposta = requests.post(f"{base_url}/pet", json=payload)
+        assert resposta.status_code == 200
+        dados = resposta.json()
+        assert dados["name"] == "Rex"
+        assert dados["status"] == "available"
 
-    def test_get_pet_by_id(self, base_url):
+    def test_buscar_pet_por_id(self, base_url):
         requests.post(f"{base_url}/pet", json={
             "id": 99902, "name": "Buddy", "photoUrls": ["url"], "status": "available"
         })
 
-        response = requests.get(f"{base_url}/pet/99902")
-        assert response.status_code == 200
-        assert response.json()["name"] == "Buddy"
+        resposta = requests.get(f"{base_url}/pet/99902")
+        assert resposta.status_code == 200
+        assert resposta.json()["name"] == "Buddy"
 
-    def test_update_pet(self, base_url):
+    def test_atualizar_pet(self, base_url):
         requests.post(f"{base_url}/pet", json={
             "id": 99903, "name": "Max", "photoUrls": ["url"], "status": "available"
         })
@@ -41,26 +41,26 @@ class TestPet:
             "photoUrls": ["url"],
             "status": "sold"
         }
-        response = requests.put(f"{base_url}/pet", json=payload)
-        assert response.status_code == 200
-        assert response.json()["name"] == "Max Updated"
-        assert response.json()["status"] == "sold"
+        resposta = requests.put(f"{base_url}/pet", json=payload)
+        assert resposta.status_code == 200
+        assert resposta.json()["name"] == "Max Updated"
+        assert resposta.json()["status"] == "sold"
 
-    def test_find_pet_by_status(self, base_url):
-        response = requests.get(f"{base_url}/pet/findByStatus", params={"status": "available"})
-        assert response.status_code == 200
-        pets = response.json()
+    def test_buscar_pet_por_status(self, base_url):
+        resposta = requests.get(f"{base_url}/pet/findByStatus", params={"status": "available"})
+        assert resposta.status_code == 200
+        pets = resposta.json()
         assert isinstance(pets, list)
         assert len(pets) > 0
 
-    def test_delete_pet(self, base_url):
+    def test_deletar_pet(self, base_url):
         requests.post(f"{base_url}/pet", json={
             "id": 99904, "name": "ToDelete", "photoUrls": ["url"], "status": "available"
         })
 
-        response = requests.delete(f"{base_url}/pet/99904")
-        assert response.status_code == 200
+        resposta = requests.delete(f"{base_url}/pet/99904")
+        assert resposta.status_code == 200
 
-    def test_get_pet_not_found(self, base_url):
-        response = requests.get(f"{base_url}/pet/0")
-        assert response.status_code == 404
+    def test_pet_nao_encontrado(self, base_url):
+        resposta = requests.get(f"{base_url}/pet/0")
+        assert resposta.status_code == 404

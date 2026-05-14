@@ -1,19 +1,19 @@
 from selenium.webdriver.common.by import By
-from .base_page import BasePage
+from .base_page import PaginaBase
 
 
-class CartPage(BasePage):
-    CHECKOUT_BTN = (By.ID, "checkout")
-    CART_ITEMS = (By.CLASS_NAME, "cart_item")
-    ITEM_NAME = (By.CLASS_NAME, "inventory_item_name")
+class PaginaCarrinho(PaginaBase):
+    BOTAO_CHECKOUT = (By.ID, "checkout")
+    ITENS_CARRINHO = (By.CLASS_NAME, "cart_item")
+    NOME_ITEM = (By.CLASS_NAME, "inventory_item_name")
 
-    def get_cart_items(self):
-        return self.driver.find_elements(*self.CART_ITEMS)
+    def obter_itens_carrinho(self):
+        return self.driver.find_elements(*self.ITENS_CARRINHO)
 
-    def get_item_names(self):
-        elements = self.driver.find_elements(*self.ITEM_NAME)
-        return [el.text for el in elements]
+    def obter_nomes_itens(self):
+        elementos = self.driver.find_elements(*self.NOME_ITEM)
+        return [el.text for el in elementos]
 
-    def checkout(self):
-        self.click(self.CHECKOUT_BTN)
+    def finalizar_compra(self):
+        self.clicar(self.BOTAO_CHECKOUT)
         return self

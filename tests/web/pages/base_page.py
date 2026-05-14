@@ -2,22 +2,22 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-class BasePage:
+class PaginaBase:
     def __init__(self, driver):
         self.driver = driver
-        self.wait = WebDriverWait(driver, 20)
+        self.espera = WebDriverWait(driver, 20)
 
-    def find(self, locator):
-        return self.wait.until(EC.presence_of_element_located(locator))
+    def encontrar(self, localizador):
+        return self.espera.until(EC.presence_of_element_located(localizador))
 
-    def click(self, locator):
-        self.find(locator)
-        self.driver.find_element(*locator).click()
+    def clicar(self, localizador):
+        self.encontrar(localizador)
+        self.driver.find_element(*localizador).click()
 
-    def type_text(self, locator, text):
-        element = self.find(locator)
-        element.clear()
-        element.send_keys(text)
+    def digitar_texto(self, localizador, texto):
+        elemento = self.encontrar(localizador)
+        elemento.clear()
+        elemento.send_keys(texto)
 
-    def get_text(self, locator):
-        return self.find(locator).text
+    def obter_texto(self, localizador):
+        return self.encontrar(localizador).text

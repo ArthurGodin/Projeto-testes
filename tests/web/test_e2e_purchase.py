@@ -1,69 +1,108 @@
+import os
+import time
+
 import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from .pages.login_page import LoginPage
-from .pages.inventory_page import InventoryPage
+from .pages.login_page import PaginaLogin
+from .pages.inventory_page import PaginaInventario
 
 pytestmark = pytest.mark.web
 
+LENTO = not os.environ.get("CI")
+ATRASO = 1.5 if LENTO else 0
 
-def _js_click(driver, css_selector, next_locator, timeout=20):
-    wait = WebDriverWait(driver, timeout)
-    wait.until(EC.presence_of_element_located(
-        (By.CSS_SELECTOR, css_selector)
-    ))
+
+def _destacar(driver, seletor_css):
+    if not LENTO:
+        return
     driver.execute_script(f"""
-        var el = document.querySelector('{css_selector}');
+        var el = document.querySelector('{seletor_css}');
+        if (el) {{
+            el.style.outline = '3px solid red';
+            el.style.outlineOffset = '2px';
+        }}
+    """)
+    time.sleep(ATRASO)
+
+
+def _clique_js(driver, seletor_css, proximo_localizador, timeout=20):
+    espera = WebDriverWait(driver, timeout)
+    espera.until(EC.presence_of_element_located(
+        (By.CSS_SELECTOR, seletor_css)
+    ))
+    _destacar(driver, seletor_css)
+    driver.execute_script(f"""
+        var el = document.querySelector('{seletor_css}');
         el.dispatchEvent(new MouseEvent('click', {{bubbles: true, cancelable: true}}));
     """)
-    wait.until(EC.presence_of_element_located(next_locator))
+    espera.until(EC.presence_of_element_located(proximo_localizador))
+    if LENTO:
+        time.sleep(0.5)
 
 
-class TestCompletePurchase:
+class TestCompraCompleta:
 
     @pytest.mark.flaky(reruns=3)
-    def test_full_purchase_flow(self, driver):
+    def test_fluxo_compra_completo(self, driver):
         driver.get("https://www.saucedemo.com/")
+        if LENTO:
+            time.sleep(ATRASO)
+
+        _destacar(driver, "#user-name")
         driver.find_element(By.ID, "user-name").send_keys("standard_user")
+        _destacar(driver, "#password")
         driver.find_element(By.ID, "password").send_keys("secret_sauce")
+        _destacar(driver, "#login-button")
         driver.find_element(By.ID, "login-button").click()
 
-        wait = WebDriverWait(driver, 20)
-        wait.until(EC.url_contains("inventory"))
+        espera = WebDriverWait(driver, 20)
+        espera.until(EC.url_contains("inventory"))
+        if LENTO:
+            time.sleep(ATRASO)
 
-        _js_click(driver, "#add-to-cart-sauce-labs-backpack", (By.CLASS_NAME, "shopping_cart_badge"))
+        _clique_js(driver, "#add-to-cart-sauce-labs-backpack", (By.CLASS_NAME, "shopping_cart_badge"))
 
-        _js_click(driver, ".shopping_cart_link", (By.CLASS_NAME, "cart_item"))
+        _clique_js(driver, ".shopping_cart_link", (By.CLASS_NAME, "cart_item"))
         assert driver.find_element(By.CLASS_NAME, "inventory_item_name").text == "Sauce Labs Backpack"
+        if LENTO:
+            time.sleep(ATRASO)
 
-        _js_click(driver, "#checkout", (By.ID, "first-name"))
+        _clique_js(driver, "#checkout", (By.ID, "first-name"))
 
+        _destacar(driver, "#first-name")
         driver.find_element(By.ID, "first-name").send_keys("Arthur")
+        _destacar(driver, "#last-name")
         driver.find_element(By.ID, "last-name").send_keys("Godinho")
+        _destacar(driver, "#postal-code")
         driver.find_element(By.ID, "postal-code").send_keys("64000")
 
-        _js_click(driver, "#continue", (By.CLASS_NAME, "summary_total_label"))
+        _clique_js(driver, "#continue", (By.CLASS_NAME, "summary_total_label"))
 
         total = driver.find_element(By.CLASS_NAME, "summary_total_label").text
         assert "Total:" in total
+        if LENTO:
+            time.sleep(ATRASO)
 
-        _js_click(driver, "#finish", (By.CLASS_NAME, "complete-header"))
+        _clique_js(driver, "#finish", (By.CLASS_NAME, "complete-header"))
         assert driver.find_element(By.CLASS_NAME, "complete-header").text == "Thank you for your order!"
+        if LENTO:
+            time.sleep(2)
 
 
 class TestLogin:
 
-    def test_successful_login(self, driver):
-        LoginPage(driver).open().login("standard_user", "secret_sauce")
-        assert InventoryPage(driver).get_title() == "Products"
+    def test_login_sucesso(self, driver):
+        PaginaLogin(driver).abrir().fazer_login("standard_user", "secret_sauce")
+        assert PaginaInventario(driver).obter_titulo() == "Products"
 
-    def test_locked_user(self, driver):
-        page = LoginPage(driver).open()
-        page.login("locked_out_user", "secret_sauce")
-        assert "locked out" in page.get_error_message().lower()
+    def test_usuario_bloqueado(self, driver):
+        pagina = PaginaLogin(driver).abrir()
+        pagina.fazer_login("locked_out_user", "secret_sauce")
+        assert "locked out" in pagina.obter_mensagem_erro().lower()
 
-    def test_invalid_credentials(self, driver):
-        page = LoginPage(driver).open()
-        page.login("invalid_user", "wrong_pass")
-        assert "Username and password do not match" in page.get_error_message()
+    def test_credenciais_invalidas(self, driver):
+        pagina = PaginaLogin(driver).abrir()
+        pagina.fazer_login("invalid_user", "wrong_pass")
+        assert "Username and password do not match" in pagina.obter_mensagem_erro()
